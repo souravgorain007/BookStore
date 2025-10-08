@@ -1,10 +1,15 @@
 package com.nt.service.impl;
 
+import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
 
+import com.nt.dto.InventoryResponse;
+import com.nt.dto.OrderLineItemsDTO;
 import com.nt.dto.OrderRequest;
 import com.nt.entity.Order;
 import com.nt.entity.OrderLineItems;
@@ -20,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderServiceImpl implements IOrderService{
 	
 	private final IOrderRepository orderRepository;
+	private final WebClient webClient;
 
 	@Override
 	public String placeOrder(OrderRequest orderRequest) {
@@ -31,8 +37,22 @@ public class OrderServiceImpl implements IOrderService{
 				        				                  .price(orderItem.getPrice())
 				        				                  .quantity(orderItem.getQuantity())
 				        				                  .build())
-				        		   .collect(Collectors.toList()))
+				        		   .toList())
 				        		   .build();
+		
+		List<String> strings = orderRequest.getOrderLineItemsDTOs().stream()
+				                           .map(OrderLineItemsDTO :: getSkuCode)
+				                           .toList();
+		
+		List<InventoryResponse> response = webClient.get()
+				                             .uri("http://localhost:9093/inventory/stocks", 
+				                            uriBuilder -> uriBuilder.queryParam("skuCode", strings).build())
+				                             .retrieve()
+				                             .bodyToMono(new ParameterizedTypeReference<List<InventoryResponse>>() {
+											}).block();
+		
+		log.info("Invertory response {}",response);
+		
 		
 		orderRepository.save(order);
 		log.info("Order placed successfully with order number {}",order.getOrderNumber());
