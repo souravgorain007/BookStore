@@ -51,13 +51,18 @@ public class OrderServiceImpl implements IOrderService{
 				                             .bodyToMono(new ParameterizedTypeReference<List<InventoryResponse>>() {
 											}).block();
 		
-		log.info("Invertory response {}",response);
+		boolean inStock =  response.stream().allMatch(res -> res.getQuantity() > 0);
 		
+		if(inStock) {
+			orderRepository.save(order);
+			log.info("Order placed successfully with order number {}",order.getOrderNumber());
+					        		    
+			return "Order placed successfully.";
+		}else {
+			log.error("Product not in stock. please try later.");
+			throw new IllegalArgumentException("Product not in stock. please try later.");
+		}
 		
-		orderRepository.save(order);
-		log.info("Order placed successfully with order number {}",order.getOrderNumber());
-				        		    
-		return "Order placed successfully.";
 	}
 
 }
