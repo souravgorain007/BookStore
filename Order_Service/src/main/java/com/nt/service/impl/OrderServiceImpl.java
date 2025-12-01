@@ -3,7 +3,6 @@ package com.nt.service.impl;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -25,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class OrderServiceImpl implements IOrderService{
 	
 	private final IOrderRepository orderRepository;
-	private final WebClient webClient;
+	private final WebClient.Builder webClientBuilder;
 
 	@Override
 	public String placeOrder(OrderRequest orderRequest) {
@@ -44,8 +43,8 @@ public class OrderServiceImpl implements IOrderService{
 				                           .map(OrderLineItemsDTO :: getSkuCode)
 				                           .toList();
 		
-		List<InventoryResponse> response = webClient.get()
-				                             .uri("http://localhost:9093/inventory/stocks", 
+		List<InventoryResponse> response = webClientBuilder.build().get()
+				                             .uri("http://INVENTORY-SERVICE/inventory/stocks", 
 				                            uriBuilder -> uriBuilder.queryParam("skuCode", strings).build())
 				                             .retrieve()
 				                             .bodyToMono(new ParameterizedTypeReference<List<InventoryResponse>>() {
