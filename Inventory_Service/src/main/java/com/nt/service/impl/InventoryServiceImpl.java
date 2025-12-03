@@ -11,6 +11,7 @@ import com.nt.repository.IInventoryRepository;
 import com.nt.service.IInventoryService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -35,7 +36,11 @@ public class InventoryServiceImpl implements IInventoryService {
 	}
 
 	@Override
+//	@SneakyThrows
 	public List<InventoryResponse> inStocks(List<String> skuCodes) {
+//		log.info("Wait started");
+//		Thread.sleep(10000);
+//		log.info("Wait ended");
 		List<Inventory> inventories = inventoryRepository.findBySkuCodeIn(skuCodes);
 		
 		return inventories.stream()
