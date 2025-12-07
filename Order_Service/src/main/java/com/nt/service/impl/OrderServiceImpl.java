@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -12,6 +13,7 @@ import com.nt.dto.OrderLineItemsDTO;
 import com.nt.dto.OrderRequest;
 import com.nt.entity.Order;
 import com.nt.entity.OrderLineItems;
+import com.nt.event.OrderPlacedEvent;
 import com.nt.repository.IOrderRepository;
 import com.nt.service.IOrderService;
 
@@ -25,6 +27,7 @@ public class OrderServiceImpl implements IOrderService{
 	
 	private final IOrderRepository orderRepository;
 	private final WebClient.Builder webClientBuilder;
+	private final KafkaTemplate<String, OrderPlacedEvent> kafkaTemplate;
 
 	@Override
 	public String placeOrder(OrderRequest orderRequest) {
@@ -54,6 +57,7 @@ public class OrderServiceImpl implements IOrderService{
 		
 		if(inStock) {
 			orderRepository.save(order);
+			kafkaTemplate.send("notificationTopic", new OrderPlacedEvent(order.getOrderNumber()));
 			log.info("Order placed successfully with order number {}",order.getOrderNumber());
 					        		    
 			return "Order placed successfully.";

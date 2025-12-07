@@ -28,7 +28,7 @@ public class OrderController {
 	
 	@PostMapping(value = "/place-order")
 	@CircuitBreaker(name = "inventory" , fallbackMethod = "inventoryFallBackMethod")
-	@TimeLimiter(name = "inventory")
+//	@TimeLimiter(name = "inventory")
 	@Retry(name = "inventory")
 	public CompletableFuture<ResponseEntity<String>> placeOrder(@RequestBody OrderRequest orderRequest){
 		 
